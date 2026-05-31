@@ -1,0 +1,7 @@
+yfinance:
+  ticker: "SPY"
+  period: "10y"
+  interval: "1d"
+
+indicators:
+  rsi_window: 14

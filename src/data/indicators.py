@@ -1,22 +1,47 @@
 import yfinance as yf
 import pandas as pd
 import ta
+from src.core.logger import logger
 
 
-def get_spy_technical_data():
-    df = yf.download("SPY", period="10y", interval="1d")
+def get_technical_data(
+    ticker: str, period: str, interval: str, rsi_window: int
+) -> pd.DataFrame:
+    """
+    Fetches historical data and calculates technical indicators.
+    """
+    logger.info(
+        f"Initiating data download for {ticker} (Period: {period}, Interval: {interval})"
+    )
 
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.droplevel(1)
+    try:
+        df = yf.download(ticker, period=period, interval=interval)
 
-    rsi_indicator = ta.momentum.RSIIndicator(close=df["Close"], window=14)
-    df["RSI"] = rsi_indicator.rsi()
+        if df.empty:
+            logger.warning(f"No data found for {ticker}. Returning empty DataFrame.")
+            return pd.DataFrame()
 
-    macd_indicator = ta.trend.MACD(close=df["Close"])
-    df["MACD"] = macd_indicator.macd()
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.droplevel(1)
 
-    df = df.reset_index()
-    df.rename(columns={"index": "Date"}, inplace=True)
-    df = df[["Date", "Close", "RSI", "MACD"]]
-    df_clean = df.dropna()
-    return df_clean
+        rsi_indicator = ta.momentum.RSIIndicator(close=df["Close"], window=rsi_window)
+        df["RSI"] = rsi_indicator.rsi()
+
+        macd_indicator = ta.trend.MACD(close=df["Close"])
+        df["MACD"] = macd_indicator.macd()
+
+        df = df.reset_index()
+        date_col = "Date" if "Date" in df.columns else "Datetime"
+
+        df = df[[date_col, "Close", "RSI", "MACD"]]
+        df.rename(columns={date_col: "Date"}, inplace=True)
+        df_clean = df.dropna()
+
+        logger.success(
+            f"Data pipeline complete for {ticker}. Final shape: {df_clean.shape}"
+        )
+        return df_clean
+
+    except Exception as e:
+        logger.exception(f"Critical error in technical data pipeline for {ticker}: {e}")
+        return pd.DataFrame()
