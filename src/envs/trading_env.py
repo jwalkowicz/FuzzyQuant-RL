@@ -42,7 +42,7 @@ class TradingEnv(gym.Env):
             int: Discrete fuzzy state index (0-8).
         """
         current_row: pd.Series = self.data.iloc[self.current_step]
-        return self.fuzzy_converter.get_state(current_row)
+        return self.fuzzy_converter.get_state(float(current_row["RSI"]), float(current_row["MACD"]))
 
     def _get_info(self) -> Dict[str, Any]:
         """
