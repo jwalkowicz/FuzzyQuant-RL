@@ -56,11 +56,11 @@ class QLearningAgent:
 
         target = reward + self.discount_factor * future_q_value
         temporal_difference = target - self.q_values[obs, action]
-        
+
         self.q_values[obs][action] = (
             self.q_values[obs][action] + self.lr * temporal_difference
         )
-        
+
         self.training_error.append(temporal_difference)
 
     def decay_epsilon(self):

@@ -21,6 +21,7 @@ def get_technical_data(
 
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.droplevel(1)
+    df.columns.name = None
 
     rsi_indicator = ta.momentum.RSIIndicator(close=df["Close"], window=rsi_window)
     df["RSI"] = rsi_indicator.rsi()

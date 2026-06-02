@@ -7,7 +7,6 @@ from pydantic import BaseModel
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
-    SettingsConfigDict,
     YamlConfigSettingsSource,
 )
 
@@ -51,10 +50,6 @@ class Settings(BaseSettings):
     training: TrainingSettings = TrainingSettings()
     testing: TestingSettings = TestingSettings()
 
-    model_config = SettingsConfigDict(
-        env_file=".env", env_nested_delimiter="__", extra="ignore"
-    )
-
     @classmethod
     def settings_customise_sources(
         cls,
@@ -67,7 +62,7 @@ class Settings(BaseSettings):
         active_env = os.getenv("ENV", "dev")
         yaml_path = f"config/{active_env}.yaml"
 
-        sources = [init_settings, env_settings, dotenv_settings]
+        sources = [init_settings, env_settings]
 
         if os.path.exists(yaml_path):
             sources.append(YamlConfigSettingsSource(settings_cls, yaml_file=yaml_path))
