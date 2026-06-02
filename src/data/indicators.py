@@ -8,7 +8,16 @@ def get_technical_data(
     ticker: str, period: str, interval: str, rsi_window: int
 ) -> pd.DataFrame:
     """
-    Fetches historical data and calculates technical indicators.
+    Downloads historical price data and computes technical indicators.
+
+    Args:
+        ticker: The stock ticker symbol.
+        period: The data period.
+        interval: The data interval.
+        rsi_window: The window size for RSI calculation.
+
+    Returns:
+        pd.DataFrame: A cleaned DataFrame containing Date, Close, RSI, and MACD.
     """
     logger.info(
         f"Initiating data download for {ticker} (Period: {period}, Interval: {interval})"
@@ -21,6 +30,7 @@ def get_technical_data(
 
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.droplevel(1)
+    df.columns.name = None
 
     rsi_indicator = ta.momentum.RSIIndicator(close=df["Close"], window=rsi_window)
     df["RSI"] = rsi_indicator.rsi()
