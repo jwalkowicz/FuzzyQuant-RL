@@ -31,11 +31,15 @@ class AgentSettings(BaseModel):
     final_epsilon: float = 0.1
     discount_factor: float = 0.95
 
+class TrainingSettings(BaseModel):
+    n_episodes: int = 100000
+
 class Settings(BaseSettings):
     yfinance: YFinanceSettings = YFinanceSettings()
     indicators: IndicatorSettings = IndicatorSettings()
     trading: TradingSettings = TradingSettings()
     agent: AgentSettings = AgentSettings()
+    training: TrainingSettings = TrainingSettings()
 
     model_config = SettingsConfigDict(
         env_file=".env", env_nested_delimiter="__", extra="ignore"
