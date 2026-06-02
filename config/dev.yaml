@@ -5,3 +5,15 @@ yfinance:
 
 indicators:
   rsi_window: 14
+
+trading:
+  initial_balance: 10000.0
+  action_size: 3
+  observation_size: 9
+
+agent:
+  learning_rate: 0.1
+  initial_epsilon: 1.0
+  epsilon_decay: 0.99
+  final_epsilon: 0.1
+  discount_factor: 0.95
