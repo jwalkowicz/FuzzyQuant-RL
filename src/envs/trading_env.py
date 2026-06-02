@@ -12,21 +12,25 @@ class TradingEnv(gym.Env):
     based on fuzzy logic states.
     """
 
-    def __init__(self, data: pd.DataFrame, initial_balance: float = 10000.0) -> None:
+    def __init__(
+        self, 
+        data: pd.DataFrame, 
+        initial_balance: float, 
+        action_size: int, 
+        observation_size: int
+    ) -> None:
         """
         Initialize the trading environment.
 
         Args:
             data (pd.DataFrame): Historical price and technical data.
             initial_balance (float): Starting cash balance.
+            action_size (int): Number of discrete actions.
+            observation_size (int): Number of discrete observation states.
         """
         self.data: pd.DataFrame = data
-        self.action_space: gym.spaces.Discrete = gym.spaces.Discrete(
-            3
-        )  # 0: Hold, 1: Buy, 2: Sell
-        self.observation_space: gym.spaces.Discrete = gym.spaces.Discrete(
-            9
-        )  # States 0-8 from fuzzy module
+        self.action_space: gym.spaces.Discrete = gym.spaces.Discrete(action_size)
+        self.observation_space: gym.spaces.Discrete = gym.spaces.Discrete(observation_size)
         self.initial_balance: float = initial_balance
         self.balance: float = initial_balance
         self.shares_held: int = 0
