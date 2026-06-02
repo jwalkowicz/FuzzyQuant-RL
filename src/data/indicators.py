@@ -37,3 +37,20 @@ def get_technical_data(
 
     df_clean = df.dropna()
     return df_clean
+
+# def calculate_hold_strategy(data):
+#     entry_price = data.iloc[0]["Close"]
+#     shares_held = int(10000 // entry_price)
+    
+#     leftover_cash =  10000 - (shares_held * entry_price)
+    
+#     data["Portfolio value"] = data["Close"].apply(lambda x: x * shares_held + leftover_cash)
+    
+#     print(data)
+
+
+# if __name__ == "__main__":
+#     data = get_technical_data("SPY", "10y", "1d", 14)
+#     calculate_hold_strategy(data)
+    
+    

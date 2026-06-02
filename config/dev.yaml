@@ -19,4 +19,4 @@ agent:
   discount_factor: 0.95
 
 training:
-  n_episodes: 100000
+  n_episodes: 100
