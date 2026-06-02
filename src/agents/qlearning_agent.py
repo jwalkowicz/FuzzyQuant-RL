@@ -25,19 +25,12 @@ class QLearningAgent:
         """
         self.action_size = action_size
         self.observation_size = observation_size
-
-        # Q-table: maps (state, action) to expected reward
         self.q_values = np.zeros((observation_size, action_size))
-
         self.lr = learning_rate
         self.discount_factor = discount_factor
-
-        # Exploration parameters
         self.epsilon = initial_epsilon
         self.epsilon_decay = epsilon_decay
         self.final_epsilon = final_epsilon
-
-        # Track learning progress
         self.training_error = []
 
     def get_action(self, obs: int) -> int:
@@ -50,3 +43,26 @@ class QLearningAgent:
             return np.random.randint(0, self.action_size)
         else:
             return int(np.argmax(self.q_values[obs]))
+
+    def update(
+        self,
+        obs: int,
+        action: int,
+        reward: float,
+        terminated: bool,
+        next_obs: int,
+    ):
+        future_q_value = (not terminated) * np.max(self.q_values[next_obs])
+
+        target = reward + self.discount_factor * future_q_value
+        temporal_difference = target - self.q_values[obs, action]
+        
+        self.q_values[obs][action] = (
+            self.q_values[obs][action] + self.lr * temporal_difference
+        )
+        
+        self.training_error.append(temporal_difference)
+
+    def decay_epsilon(self):
+        """Reduce exploration rate after each episode."""
+        self.epsilon = max(self.final_epsilon, self.epsilon - self.epsilon_decay)
