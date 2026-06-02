@@ -37,9 +37,13 @@ class AgentSettings(BaseModel):
 
 class TrainingSettings(BaseModel):
     n_episodes: int = 100000
+    q_table_filename: str = "q_table_fuzzy_quant.npy"
+    reward_avg_window: int = 100
+    rolling_length: int = 5
 
 
-class TestingSettings(BaseModel): ...
+class TestingSettings(BaseModel):
+    split_date: str = "2025-01-01"
 
 
 class Settings(BaseSettings):

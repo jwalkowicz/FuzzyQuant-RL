@@ -16,7 +16,7 @@ app = typer.Typer(help="fuzzyQuant-RL")
 @app.command(name="run")
 def run():
     """
-    Main execution command. Downloads data, trains the RL agent, 
+    Main execution command. Downloads data, trains the RL agent,
     and evaluates its performance against a buy-and-hold strategy.
     """
     logger.info("Application starting...")
@@ -29,7 +29,9 @@ def run():
     )
 
     train_data, test_data = _train_test_split_data(data)
-    logger.info(f"Data split: {len(train_data)} training rows, {len(test_data)} testing rows.")
+    logger.info(
+        f"Data split: {len(train_data)} training rows, {len(test_data)} testing rows."
+    )
 
     train_env = TradingEnv(
         data=train_data,
@@ -54,13 +56,13 @@ def run():
         final_epsilon=config.agent.final_epsilon,
         discount_factor=config.agent.discount_factor,
     )
-    
+
     logger.info(f"Starting training for {config.training.n_episodes} episodes...")
     train_history = train_agent(train_env, agent)
     logger.info("Training complete.")
-    
+
     draw_training_chart(train_history, agent)
-    
+
     logger.info("Starting evaluation on test data...")
     test_history = evaluate_agent(test_env, agent, test_data)
     compare_with_hold_strategy(test_history, test_data)
@@ -69,27 +71,27 @@ def run():
 def _train_test_split_data(data: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
     Splits the data into training and testing sets based on a fixed date.
-    
+
     Args:
         data: The full technical data.
-        
+
     Returns:
         A tuple of (train_data, test_data).
     """
     return (
-        data.loc[data["Date"] < "2025-01-01"].copy(),
-        data.loc[data["Date"] >= "2025-01-01"].copy(),
+        data.loc[data["Date"] < config.testing.split_date].copy(),
+        data.loc[data["Date"] >= config.testing.split_date].copy(),
     )
 
 
 def train_agent(env: TradingEnv, agent: QLearningAgent) -> list:
     """
     Trains the Q-Learning agent in the provided environment.
-    
+
     Args:
         env: The training environment.
         agent: The RL agent to train.
-        
+
     Returns:
         A list of total rewards per episode.
     """
@@ -112,26 +114,28 @@ def train_agent(env: TradingEnv, agent: QLearningAgent) -> list:
         agent.decay_epsilon()
         rewards_history.append(episode_reward)
 
-    np.save("q_table_fuzzy_quant.npy", agent.q_values)
-    avg_reward = np.mean(rewards_history[-100:])
-    logger.info(f"Average reward over last 100 episodes: {avg_reward:.2f}")
+    np.save(config.training.q_table_filename, agent.q_values)
+    avg_reward = np.mean(rewards_history[-config.training.reward_avg_window :])
+    logger.info(
+        f"Average reward over last {config.training.reward_avg_window} episodes: {avg_reward:.2f}"
+    )
     return rewards_history
 
 
 def evaluate_agent(env: TradingEnv, agent: QLearningAgent, data: pd.DataFrame) -> list:
     """
     Evaluates a trained agent on the test data.
-    
+
     Args:
         env: The testing environment.
         agent: The trained agent.
         data: The test dataset.
-        
+
     Returns:
         A history of steps, actions, and net worth during evaluation.
     """
     try:
-        agent.q_values = np.load("q_table_fuzzy_quant.npy")
+        agent.q_values = np.load(config.training.q_table_filename)
         logger.info("Successfully loaded pre-trained Q-table.")
     except FileNotFoundError:
         logger.error("No Q-table found. Train the agent first.")
@@ -159,7 +163,7 @@ def evaluate_agent(env: TradingEnv, agent: QLearningAgent, data: pd.DataFrame) -
             obs = next_obs
 
     final_balance = history[-1]["net_worth"]
-    logger.info(f"Final Balance in 2025: {final_balance}")
+    logger.info(f"Final Balance in {config.testing.split_date[:4]}: {final_balance}")
 
     return history
 
@@ -167,10 +171,10 @@ def evaluate_agent(env: TradingEnv, agent: QLearningAgent, data: pd.DataFrame) -
 def calculate_hold_strategy(data: pd.DataFrame) -> pd.Series:
     """
     Calculates the portfolio value of a simple Buy & Hold strategy.
-    
+
     Args:
         data: Technical data with closing prices.
-        
+
     Returns:
         A Series of portfolio values over time.
     """
@@ -202,7 +206,7 @@ def compare_with_hold_strategy(agent_history: list, test_data: pd.DataFrame):
         linestyle="--",
     )
 
-    plt.title("Trading Bot vs Buy & Hold (2025 Test OOS)")
+    plt.title("Trading Bot vs Buy & Hold")
     plt.xlabel("Date")
     plt.ylabel("Portfolio Value ($)")
     plt.legend()
@@ -218,13 +222,14 @@ def draw_training_chart(rewards_history: list, agent: QLearningAgent):
     """
     Draws charts for episode rewards and temporal difference error.
     """
+
     def _get_moving_avgs(arr, window, convolution_mode):
         return (
             np.convolve(np.array(arr).flatten(), np.ones(window), mode=convolution_mode)
             / window
         )
 
-    rolling_length = 5
+    rolling_length = config.training.rolling_length
     _, axs = plt.subplots(ncols=2, figsize=(12, 5))
 
     axs[0].set_title("Episode Rewards (Learning Curve)")
